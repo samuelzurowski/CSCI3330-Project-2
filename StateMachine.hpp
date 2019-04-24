@@ -17,37 +17,16 @@ class StateMachine {
         int addr = 0, dest = 0, s1 = 0, s2 = 0;
         int rs1 = 0, rs2 = 0, rd = 0, func = 0, offset = 0, imm = 0, mar = 0, mdr = 0;
         int a = 0, b = 0, c = 0;
-        vector<int> regFile{
+        vector<int> regFile {
             0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,
             18,19,20,21,22,23,24,25,26,27,28,29,30,31
         };
-
         string data;
         vector<string> memory;
-
-        void loadMemory() {
-            ifstream ifs(fileName);
-            if(!ifs.is_open()) {
-                cout << "File not found aborting.";
-                exit(0);
-            }
-            string s;
-            while(getline(ifs, s)) {
-                smatch sm;
-                regex_search(s, sm, regex("x(.*)"));
-
-                stringstream ss;
-                ss << hex << sm.str(1);
-                unsigned n;
-                ss >> n;
-
-                bitset<32> b(n);
-                memory.push_back(b.to_string());
-            } 
-        }
     public:   
         StateMachine(string fileName): fileName(fileName){ loadMemory(); }
 
+        void loadMemory();
         void stateOne();
         void stateTwo();
         void printInfo();

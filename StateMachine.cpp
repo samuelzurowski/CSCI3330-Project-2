@@ -12,7 +12,7 @@ void StateMachine::checkInfo() {
     printInfo();
     stateTwo();
     printInfo();
-    // cout << "Line Num: " << i << endl;
+
     switch(state.opCode) {
         case 0: checkRType(); break; 
         case 1: break;
@@ -25,8 +25,9 @@ void StateMachine::checkRType() {
     switch(func) {
         case 4: addRType(8);  break; // SLL TODO: DO ALU
         case 6: addRType(10); break; // SRL TODO: DO ALU
-        case 32: addRType(0); break; // add 
-        case 34: addRType(1); break; // sub
+        case 32: addRType(0); break; // ADD 
+        case 34: addRType(1); break; // SUB
+        case 37: addRType(5); break; // OR
         default: exit(0);
     }
 }
@@ -76,8 +77,11 @@ void StateMachine::addRType(int aluCode) {
 void StateMachine::setAluOP(int op) {
     state.aluOP = op;
     switch(op) {
-        case 0: dest = s1 + s2; break;
-        case 1: dest = s1 - s2; break;
+        case 0:  dest = s1 + s2;  break; // Add
+        case 1:  dest = s1 - s2;  break; // Sub
+        case 5:  dest = s1 | s2;  break; // OR
+        case 8:  dest = s1 << s2; break; // SLL
+        case 10: dest = s1 >> s2; break; // SRL
         default: exit(0);
     }
 }
@@ -112,7 +116,26 @@ void StateMachine::printInfo() {
     cout << "Press [Enter] to continue...";
     getchar();
 }
+void StateMachine::loadMemory() {
+    ifstream ifs(fileName);
+    if(!ifs.is_open()) {
+        cout << "File not found aborting.";
+        exit(0);
+    }
+    string s;
+    while(getline(ifs, s)) {
+        smatch sm;
+        regex_search(s, sm, regex("x(.*)"));
 
+        stringstream ss;
+        ss << hex << sm.str(1);
+        unsigned n;
+        ss >> n;
+
+        bitset<32> b(n);
+        memory.push_back(b.to_string());
+    } 
+}
 void StateMachine::setS2OP(int op) {
     switch(op) {
         case 0: break;
