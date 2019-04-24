@@ -1,0 +1,22 @@
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    {
+        "version": "0.2.0",
+        "configurations": [
+            {
+                "name": "(lldb) Launch",
+                "type": "cppdbg",
+                "request": "launch",
+                "preLaunchTask": "build",
+                "program": "${workspaceRoot}/main",
+                "args": [
+                    "input.txt",
+                    "output.txt"
+                ],
+                "stopAtEntry": false,
+                "cwd": "${workspaceFolder}",
+                "environment": [],
+                "externalConsole": false,
+                "MIMode": "lldb"
+            }
+        ]
+    }

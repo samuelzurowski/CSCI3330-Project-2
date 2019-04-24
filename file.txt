@@ -1,0 +1,13 @@
+xor r3,r2,r5: 0x00451826
+seq r4,r8,r10: 0x010A2028
+beqz r4,end: 0x1080001C
+subi r23,r10,435: 0x295701B3
+labela:addi r31,r12,#-35: 0x219FFFDD
+lw r8,12(r4): 0x8C88000C
+lb r3,-3(r10): 0x8143FFFD
+jr r4: 0x48800000
+j labela: 0x0BFFFFEC
+sw 0(r5), r12: 0xACAC0000
+end:lhi r8,#12000: 0x3C082EE0
+jal labela: 0x0FFFFFE0
+add r0, r1, r2 0x00220020
