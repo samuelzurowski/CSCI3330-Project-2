@@ -15,7 +15,17 @@ void StateMachine::checkInfo() {
 
     switch(state.opCode) {
         case 0: checkRType(); break; 
-        case 1: break;
+        case 2: /* TODO: J */ break;
+        case 4: /* TODO: BEQZ*/ break;
+        case 5: /* TODO: BNEZ*/ break;
+        case 8: /* TODO: ADDI */break;
+        case 13: /* TODO: ORI */ break;
+        case 32: /* TODO: LB */ break;
+        case 33: /* TODO: LH */ break;
+        case 35: /* TODO: LW */ break;
+        case 40: /* TODO: SB */ break;
+        case 41: /* TODO: SH */ break;
+        case 43: /* TODO: SW */ break;
         default:
             break;
     }
@@ -23,11 +33,11 @@ void StateMachine::checkInfo() {
 }
 void StateMachine::checkRType() {
     switch(func) {
-        case 4: addRType(8);  break; // SLL TODO: DO ALU
-        case 6: addRType(10); break; // SRL TODO: DO ALU
-        case 32: addRType(0); break; // ADD 
-        case 34: addRType(1); break; // SUB
-        case 37: addRType(5); break; // OR
+        case 4:  rType(8);  break; // SLL
+        case 6:  rType(10); break; // SRL
+        case 32: rType(0); break; // ADD 
+        case 34: rType(1); break; // SUB
+        case 37: rType(5); break; // OR
         default: exit(0);
     }
 }
@@ -57,7 +67,7 @@ void StateMachine::setAoe(int val) {
 void StateMachine::setBoe(int val) {
     if(val) setS2(regFile[rs2]);
 }
-void StateMachine::addRType(int aluCode) {
+void StateMachine::rType(int aluCode) {
     setAoe(1);
     setBoe(1);
     setS2OP(0);

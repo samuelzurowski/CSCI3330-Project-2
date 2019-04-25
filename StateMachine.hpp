@@ -77,7 +77,7 @@ class StateMachine {
         void BLoad(bool val) { if(val) b = regFile[rs2]; }
         void CLoad(bool val) { if(val) c = dest; }
 
-        void addRType(int op);
+        void rType(int op);
         void checkRType();
         void checkInfo();
         void start();
