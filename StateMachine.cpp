@@ -177,7 +177,8 @@ string StateMachine::getMemSize(int addr, int type) {
     string val;
     switch(type) {
         case 0: // word = 32 bits
-            if(addr % 4 == 0) val = memory[addr / 4];
+            if(addr % 4 == 0) 
+                val = memory[addr / 4];
             else {
                 int mod = addr % 4;
                 int offset = 32 - 8 * mod;
@@ -188,12 +189,14 @@ string StateMachine::getMemSize(int addr, int type) {
             }
             break;
         case 1: // halfword = 16 bits
-            if(addr % 4 == 0) val = memory[addr / 4].substr(0, 16);
+            if(addr % 4 == 0) 
+                val = memory[addr / 4].substr(0, 16);
             else {
                 int mod = addr % 4;
                 int offset = 16 - 8 * mod;
 
-                if(offset >= 0) val = memory[floor(addr / 4)].substr(8 * mod, 16);
+                if(offset >= 0) 
+                    val = memory[floor(addr / 4)].substr(8 * mod, 16);
                 else {
                     // TODO: try/catch
                     val =  memory[floor(addr / 4)].substr(8 * mod, 8);
