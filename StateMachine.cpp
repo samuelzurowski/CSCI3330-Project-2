@@ -176,35 +176,36 @@ void StateMachine::readMemory(bool read, int op) {
 string StateMachine::getMemSize(int addr, int type) {
     string val;
     switch(type) {
-        case 0: // word 32
-            if(addr % 4 == 0)
-                val = memory[addr / 4];
+        case 0: // word = 32 bits
+            if(addr % 4 == 0) val = memory[addr / 4];
             else {
                 int mod = addr % 4;
                 int offset = 32 - 8 * mod;
+
+                //todo try/catch
                 val = memory[floor(addr / 4)].substr(8 * mod, offset);
                 val += memory[ceil(addr / 4)].substr(0, 8 * mod);
             }
             break;
-        case 1: // hw 16
-            if(addr % 4 == 0)
-                val = memory[addr / 4].substr(0, 16);
+        case 1: // hw = 16 bits
+            if(addr % 4 == 0) val = memory[addr / 4].substr(0, 16);
             else {
                 int mod = addr % 4;
                 int offset = 16 - 8 * mod;
+
                 if(offset >= 0) val = memory[floor(addr / 4)].substr(8 * mod, 16);
                 else {
+                    //todo try/catch
                     val = memory[floor(addr / 4)].substr(8 * mod, 8);
                     val += memory[ceil(addr / 4)].substr(0, 8);
                 }
             }
             break;
-        case 2: // byte 8
-            if(addr % 4 == 0)
-                val = memory[addr / 4].substr(0, 8);
-            else {
-                int mod = addr % 4;
-                val = memory[floor(addr / 4)].substr(8 * mod, 8);
+        case 2: // byte = 8 bits
+            if(addr % 4 == 0) val = memory[addr / 4].substr(0, 8);
+            else { 
+                //todo try/catch
+                val = memory[floor(addr / 4)].substr(8 * (addr % 4), 8);
             }
             break;
         default:
@@ -228,13 +229,25 @@ void StateMachine::loadInstr(int op) {
     iroeS2(1);
     setS2OP(3);
     setAluOP(0);
-
     marLoad(1);
     printInfo();
+
     PCMARSelect(1);
     readMemory(addr, op);
+    mdrLoad(1);
+    printInfo();
+
+    mdroeS2(1);
+    setS2OP(1)
 }
 
+void StateMachine::mdroeS2(bool val) {
+    if(val) s2 = mdr;
+}
+
+void StateMachine::mdrLoad(bool val) {
+    if(val) mdr = stoi(data, nullptr, 2);
+}
 void StateMachine::marLoad(bool val) {
     if(val) mar = dest;
 }

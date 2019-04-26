@@ -90,6 +90,8 @@ class StateMachine {
         void marLoad(bool op);
         void mdrLoad(bool op);
 
+        void mdroeS2(bool op);
+
         void loadInstr(int op);
         void start();
 };
