@@ -16,13 +16,13 @@ void StateMachine::checkInfo() {
     switch(state.opCode) {
         case 0: checkRType(); break; 
         case 2: /* TODO: J */ break;
-        case 4: /* TODO: BEQZ*/ break;
-        case 5: /* TODO: BNEZ*/ break;
+        case 4: /* TODO: BEQZ */ break;
+        case 5: /* TODO: BNEZ */ break;
         case 8: /* TODO: ADDI */break;
         case 13: /* TODO: ORI */ break;
         case 32: /* TODO: LB */ break;
         case 33: /* TODO: LH */ break;
-        case 35: /* TODO: LW */ break;
+        case 35: loadInstr(0); break; // lw
         case 40: /* TODO: SB */ break;
         case 41: /* TODO: SH */ break;
         case 43: /* TODO: SW */ break;
@@ -75,13 +75,16 @@ void StateMachine::rType(int aluCode) {
     CLoad(1);
     printInfo();
     setREGSelect(0);
-    switch(getREGSelect()) {
+    updateReg(getREGSelect());
+}
+
+void StateMachine::updateReg(int reg) {
+    switch(reg) {
         case 0: regFile[rd]  = c; break;
         case 1: regFile[rs2] = c; break;
         case 2: regFile[31]  = c; break;
         default: exit(0); 
-    }
-
+    } 
 }
 
 void StateMachine::setAluOP(int op) {
@@ -124,7 +127,7 @@ void StateMachine::printInfo() {
     // cout << "IMM: " << imm          << endl;
     // cout << "IR : " << getIR()      << endl;
     cout << "Press [Enter] to continue...";
-    getchar();
+    // getchar();
 }
 void StateMachine::loadMemory() {
     ifstream ifs(fileName);
@@ -146,9 +149,11 @@ void StateMachine::loadMemory() {
         memory.push_back(b.to_string());
     } 
 }
+
 void StateMachine::setS2OP(int op) {
     switch(op) {
         case 0: break;
+        case 3: s2 = imm; break;
         case 6: s2 = 16; break;
         case 7: s2 = 4; break;
         default: exit(0);
@@ -167,22 +172,71 @@ void StateMachine::readMemory(bool read, int op) {
         data = getMemSize(addr, op);
     } else state.memRead = 0;
 }
+
 string StateMachine::getMemSize(int addr, int type) {
     string val;
     switch(type) {
-        case 0: // word
-            val = memory[addr / 4];
+        case 0: // word 32
+            if(addr % 4 == 0)
+                val = memory[addr / 4];
+            else {
+                int mod = addr % 4;
+                int offset = 32 - 8 * mod;
+                val = memory[floor(addr / 4)].substr(8 * mod, offset);
+                val += memory[ceil(addr / 4)].substr(0, 8 * mod);
+            }
             break;
-        case 1: // hw
-            val = memory[addr / 4].substr(0, 16);
+        case 1: // hw 16
+            if(addr % 4 == 0)
+                val = memory[addr / 4].substr(0, 16);
+            else {
+                int mod = addr % 4;
+                int offset = 16 - 8 * mod;
+                if(offset >= 0) val = memory[floor(addr / 4)].substr(8 * mod, 16);
+                else {
+                    val = memory[floor(addr / 4)].substr(8 * mod, 8);
+                    val += memory[ceil(addr / 4)].substr(0, 8);
+                }
+            }
             break;
-        case 2: // byte
-            val = memory[addr / 4].substr(0, 8);
+        case 2: // byte 8
+            if(addr % 4 == 0)
+                val = memory[addr / 4].substr(0, 8);
+            else {
+                int mod = addr % 4;
+                val = memory[floor(addr / 4)].substr(8 * mod, 8);
+            }
             break;
         default:
             return 0;
     }
     return val;
+}
+
+void StateMachine::loadInstr(int op) {
+/*
+    setAoe(1);
+    setBoe(1);
+    setS2OP(0);
+    setAluOP(aluCode);
+    CLoad(1);
+    printInfo();
+    setREGSelect(0);
+    updateReg(getREGSelect());
+*/
+    setAoe(1);
+    iroeS2(1);
+    setS2OP(3);
+    setAluOP(0);
+
+    marLoad(1);
+    printInfo();
+    PCMARSelect(1);
+    readMemory(addr, op);
+}
+
+void StateMachine::marLoad(bool val) {
+    if(val) mar = dest;
 }
 
 void StateMachine::IRLoad() {

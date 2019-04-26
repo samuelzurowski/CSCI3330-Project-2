@@ -6,6 +6,7 @@
 #include <regex>
 #include <map>
 #include <sstream>
+#include <math.h>
 #include <fstream>
 #include "State.hpp"
 using namespace std;
@@ -14,7 +15,8 @@ class StateMachine {
     private:
         State state;
         string fileName;
-        int addr = 0, dest = 0, s1 = 0, s2 = 0;
+        int addr = 0, dest = 0;
+        long s1 = 0, s2 = 0;
         int rs1 = 0, rs2 = 0, rd = 0, func = 0, offset = 0, imm = 0, mar = 0, mdr = 0;
         int a = 0, b = 0, c = 0;
         vector<int> regFile {
@@ -65,8 +67,8 @@ class StateMachine {
         void setAoe(int val);
         void setBoe(int val);
 
-        void setS1(int val) { s2 = val; }
-        void setS2(int val) { s1 = val; }
+        void setS1(long val) { s1 = val; }
+        void setS2(long val) { s2 = val; }
 
 
         void incrementPC();
@@ -77,8 +79,17 @@ class StateMachine {
         void BLoad(bool val) { if(val) b = regFile[rs2]; }
         void CLoad(bool val) { if(val) c = dest; }
 
+
+        void iroeS1(bool val) { if(val) s1 = stol(getIR(), nullptr, 2); }
+        void iroeS2(bool val){ if(val)  s2 = stol(getIR(), nullptr, 2); }
+
+        void updateReg(int reg);
         void rType(int op);
         void checkRType();
         void checkInfo();
+        void marLoad(bool op);
+        void mdrLoad(bool op);
+
+        void loadInstr(int op);
         void start();
 };
