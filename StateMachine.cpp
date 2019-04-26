@@ -14,15 +14,15 @@ void StateMachine::checkInfo() {
     printInfo();
 
     switch(state.opCode) {
-        case 0: checkRType(); break; 
-        case 2: /* TODO: J */ break;
-        case 4: /* TODO: BEQZ */ break;
-        case 5: /* TODO: BNEZ */ break;
-        case 8: /* TODO: ADDI */break;
-        case 13: /* TODO: ORI */ break;
-        case 32: /* TODO: LB */ break;
-        case 33: /* TODO: LH */ break;
-        case 35: loadInstr(0); break; // lw
+        case 0: checkRType();   break; 
+        case 2: /* TODO: J   */ break;
+        case 4: /* TODO: BEQZ*/ break;
+        case 5: /* TODO: BNEZ*/ break;
+        case 8: /* TODO: ADDI*/ break;
+        case 13: /* TODO: ORI*/ break;
+        case 32: loadInstr(2);  break; // TODO: LB (CHECK)
+        case 33: loadInstr(1);  break; // TODO: LH (CHECK)
+        case 35: loadInstr(0);  break; // TODO: LW (CHECK)
         case 40: /* TODO: SB */ break;
         case 41: /* TODO: SH */ break;
         case 43: /* TODO: SW */ break;
@@ -182,12 +182,12 @@ string StateMachine::getMemSize(int addr, int type) {
                 int mod = addr % 4;
                 int offset = 32 - 8 * mod;
 
-                //todo try/catch
-                val = memory[floor(addr / 4)].substr(8 * mod, offset);
+                //TODO: try/catch
+                val =  memory[floor(addr / 4)].substr(8 * mod, offset);
                 val += memory[ceil(addr / 4)].substr(0, 8 * mod);
             }
             break;
-        case 1: // hw = 16 bits
+        case 1: // halfword = 16 bits
             if(addr % 4 == 0) val = memory[addr / 4].substr(0, 16);
             else {
                 int mod = addr % 4;
@@ -195,8 +195,8 @@ string StateMachine::getMemSize(int addr, int type) {
 
                 if(offset >= 0) val = memory[floor(addr / 4)].substr(8 * mod, 16);
                 else {
-                    //todo try/catch
-                    val = memory[floor(addr / 4)].substr(8 * mod, 8);
+                    // TODO: try/catch
+                    val =  memory[floor(addr / 4)].substr(8 * mod, 8);
                     val += memory[ceil(addr / 4)].substr(0, 8);
                 }
             }
@@ -204,7 +204,7 @@ string StateMachine::getMemSize(int addr, int type) {
         case 2: // byte = 8 bits
             if(addr % 4 == 0) val = memory[addr / 4].substr(0, 8);
             else { 
-                //todo try/catch
+                // TODO: try/catch
                 val = memory[floor(addr / 4)].substr(8 * (addr % 4), 8);
             }
             break;
@@ -215,16 +215,6 @@ string StateMachine::getMemSize(int addr, int type) {
 }
 
 void StateMachine::loadInstr(int op) {
-/*
-    setAoe(1);
-    setBoe(1);
-    setS2OP(0);
-    setAluOP(aluCode);
-    CLoad(1);
-    printInfo();
-    setREGSelect(0);
-    updateReg(getREGSelect());
-*/
     setAoe(1);
     iroeS2(1);
     setS2OP(3);
@@ -237,8 +227,9 @@ void StateMachine::loadInstr(int op) {
     mdrLoad(1);
     printInfo();
 
+    // TODO: PUT IN C then update reg
     mdroeS2(1);
-    setS2OP(1)
+    setS2OP(1);
 }
 
 void StateMachine::mdroeS2(bool val) {
