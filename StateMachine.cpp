@@ -176,7 +176,7 @@ void StateMachine::setAluOP(int op) {
     switch(op) {
         case 0:  dest = s1 + s2;  break; // Add
         case 1:  dest = s1 - s2;  break; // Sub
-        case 3:  dest = s2;       break; // pass s2
+        case 3:  dest = s2; /* zflag */ break; // pass s2
         case 5:  dest = s1 | s2;  break; // OR
         case 8:  dest = s1 << s2; break; // SLL
         case 10: dest = s1 >> s2; break; // SRL
