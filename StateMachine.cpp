@@ -403,8 +403,8 @@ void StateMachine::memWrite(bool write) {
         switch(getMemOP()) {
             // fix case num just testing!
             case 0: memory[mar] = data;  break; // word = 32 bits
-            case 1: memory[mar] = data.substr(16, 16); break; // hw = 16 bits
-            case 2: memory[mar] = data.substr(24, 8); break; // 1 byte = 8bits
+            case 1: memory[mar].replace(16,16, data.substr(16, 16)); break; // hw = 16 bits
+            case 2: memory[mar].replace(24, 8, data.substr(24, 8)); break; // 1 byte = 8bits
             default: break;
         }
     }
