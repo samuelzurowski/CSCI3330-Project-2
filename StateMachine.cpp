@@ -1,12 +1,19 @@
 #include "StateMachine.hpp"
 
+/**
+ * @function start state machine
+ * @desc starts doing each step.
+ */
 void StateMachine::start() {
-    int i = 0;
     printInfo();
     for(auto val: memory)
         checkInfo();
 }
 
+/**
+ * @function checkInfo
+ * @desc perform all logic to perform the state machine
+ */
 void StateMachine::checkInfo() {
     stateOne();
     printInfo();
@@ -14,59 +21,90 @@ void StateMachine::checkInfo() {
     printInfo();
 
     switch(state.opCode) {
-        case 0: checkRType();   break; 
+        case 0: checkRType();   break; // rTypes 
         case 2: /* TODO: J   */ break;
         case 4: /* TODO: BEQZ*/ break;
         case 5: /* TODO: BNEZ*/ break;
         case 8: /* TODO: ADDI*/ break;
         case 13: /* TODO: ORI*/ break;
-        case 32: loadInstr(2);  break; // TODO: LB (CHECK)
-        case 33: loadInstr(1);  break; // TODO: LH (CHECK)
-        case 35: loadInstr(0);  break; // TODO: LW (CHECK)
-        case 40: /* TODO: SB */ break;
-        case 41: /* TODO: SH */ break;
-        case 43: /* TODO: SW */ break;
-        default:
-            break;
+        case 32: loadInstr(2);  break; // LB
+        case 33: loadInstr(1);  break; // LH
+        case 35: loadInstr(0);  break; // LW
+        case 40: storeInstr(2); break; // SB
+        case 41: storeInstr(1); break; // SH
+        case 43: storeInstr(0); break; // SW
+        default: break;
     }
     printInfo();
 }
+
+/**
+ * @function determine the rtype of instruction
+ * @desc based on the rtype perform operands
+ */
 void StateMachine::checkRType() {
     switch(func) {
         case 4:  rType(8);  break; // SLL
         case 6:  rType(10); break; // SRL
-        case 32: rType(0); break; // ADD 
-        case 34: rType(1); break; // SUB
-        case 37: rType(5); break; // OR
+        case 32: rType(0);  break; // ADD 
+        case 34: rType(1);  break; // SUB
+        case 37: rType(5);  break; // OR
         default: exit(0);
     }
 }
+
+/**
+ * @function stateone of every instr
+ * @desc put into IR the value in memory
+ */
 void StateMachine::stateOne() {
     PCMARSelect(0);
     readMemory(1, 0);
     IRLoad();
 }
 
+/**
+ * @function stateTwo for every instruction
+ * @desc increment the pc and load rs1 and rs2 into a & b
+ */
 void StateMachine::stateTwo() {
     incrementPC();
     ALoad(1);
     BLoad(1);
 }
 
+/**
+ * @function increment the value of the pc
+ * @desc pc = pc + 4
+ */
 void StateMachine::incrementPC() {
     setPCoeS1(getPC());
     setS2OP(7);
     setAluOP(0);
     setPCLoad();
 }
-
-void StateMachine::setAoe(int val) {
+/**
+ * @function set the a value onto the bus or not
+ * @desc set the s1 bus to a's value
+ * @param val if it can set the s1 value
+ */ 
+void StateMachine::setAoe(bool val) {
     if(val) setS1(regFile[rs1]);
 }
 
-void StateMachine::setBoe(int val) {
+/**
+ * @function set the b value onto the bus or not
+ * @desc set the s2 bus to b's value
+ * @param val if it can set the s2 value
+ */ 
+void StateMachine::setBoe(bool val) {
     if(val) setS2(regFile[rs2]);
 }
+/**
+ * @function rType arthimetic for all the instructions
+ * @desc do the state machine for all rType instructions
+ * @param alucode to be able to perform arithmetic
+ */ 
 void StateMachine::rType(int aluCode) {
     setAoe(1);
     setBoe(1);
@@ -78,7 +116,12 @@ void StateMachine::rType(int aluCode) {
     updateReg(getREGSelect());
 }
 
-void StateMachine::updateReg(int reg) {
+/**
+ * @function update the register file
+ * @desc takes the operand to determine the reg to put it in
+ * @param reg to determine which case it is.
+ */ 
+void StateMachine::updateReg(long reg) {
     switch(reg) {
         case 0: regFile[rd]  = c; break;
         case 1: regFile[rs2] = c; break;
@@ -87,11 +130,17 @@ void StateMachine::updateReg(int reg) {
     } 
 }
 
+/**
+ * @function set ALU op to perform math
+ * @desc based on alu puts result on dest bus
+ * @param op choice
+ */ 
 void StateMachine::setAluOP(int op) {
     state.aluOP = op;
     switch(op) {
         case 0:  dest = s1 + s2;  break; // Add
         case 1:  dest = s1 - s2;  break; // Sub
+        case 3:  dest = s2;       break; // pass s2
         case 5:  dest = s1 | s2;  break; // OR
         case 8:  dest = s1 << s2; break; // SLL
         case 10: dest = s1 >> s2; break; // SRL
@@ -99,14 +148,29 @@ void StateMachine::setAluOP(int op) {
     }
 }
 
+/**
+ * @function read from memory
+ * @desc makes the immediate signed by checking first bit
+ * @param string to get immediate from
+ */ 
 void StateMachine::setImm(string s){
-    imm  = stoi(s.substr(16, 16), nullptr, 2);
+    imm  = stol(s.substr(16, 16), nullptr, 2);
     imm |= imm &  (1 << 15)  ? ( -(1<<16) ) : 0;
 }
 
+/**
+ * @function print info about data
+ * @desc prints information such as registers, mar, etc
+ */ 
 void StateMachine::printInfo() {
     cout << "\nRegFile: " << endl;
-    for(int i = 0; i < 32; i++) cout << "r" << i << ": " << regFile[i] << ' ';
+    for(int i = 0; i < 32; i++) {
+        cout << "r" << i << ": " << regFile[i] << ' ';
+    }
+    //remove later on
+    cout << "\nMemory: " << endl;
+    for(int i = 0; i < memory.size(); i++)
+        cout << i << ' ' << memory[i] << '\n';
 
     cout << "\nMemory Register:\nMDR: " << mdr << " MAR: " << mar << endl;
 
@@ -121,14 +185,14 @@ void StateMachine::printInfo() {
     cout << " B: " << b;
     cout << " C: " << c << endl;
 
-    // cout << "OP:  " << state.opCode << endl;
-    // cout << "RS1: " << rs1          << endl;
-    // cout << "RS2: " << rs2          << endl;
-    // cout << "IMM: " << imm          << endl;
-    // cout << "IR : " << getIR()      << endl;
     cout << "Press [Enter] to continue...";
     // getchar();
 }
+
+/**
+ * @function load memory into program
+ * @desc takes the hexadecimal values and puts them in binary into memory
+ */ 
 void StateMachine::loadMemory() {
     ifstream ifs(fileName);
     if(!ifs.is_open()) {
@@ -150,6 +214,12 @@ void StateMachine::loadMemory() {
     } 
 }
 
+
+/**
+ * @function set the s2 op
+ * @desc put information on the s2 bus
+ * @param int op determine what is on the bus
+ */ 
 void StateMachine::setS2OP(int op) {
     switch(op) {
         case 0: break;
@@ -161,11 +231,22 @@ void StateMachine::setS2OP(int op) {
     state.s2OP = op;
 }
 
+/**
+ * @function pc or mar select
+ * @desc based on selection put information on address bus
+ * @param op determine if PC or MAR onto the bus
+ */ 
 void StateMachine::PCMARSelect(bool op) {
     if(op) addr = mar;
     else addr = state.pc;
 }
 
+/**
+ * @function read from memory
+ * @desc put the data on the bus
+ * @param bool read if can read
+ * @param op for if halfword, word, or byte
+ */ 
 void StateMachine::readMemory(bool read, int op) {
     if(read) {
         state.memRead = 1;
@@ -173,43 +254,36 @@ void StateMachine::readMemory(bool read, int op) {
     } else state.memRead = 0;
 }
 
-string StateMachine::getMemSize(int addr, int type) {
+/**
+ * @function get the memory size
+ * @desc pull from memory the binary string
+ * @param addr for the memory location
+ * @param type for if its word, halfword, or byte
+ * @return the value pulled from memory
+ */ 
+string StateMachine::getMemSize(long addr, int type) {
     string val;
+    double dec = 0;
     switch(type) {
         case 0: // word = 32 bits
-            if(addr % 4 == 0) 
-                val = memory[addr / 4];
-            else {
-                int mod = addr % 4;
-                int offset = 32 - 8 * mod;
-
-                //TODO: try/catch
-                val =  memory[floor(addr / 4)].substr(8 * mod, offset);
-                val += memory[ceil(addr / 4)].substr(0, 8 * mod);
-            }
+            val = memory[addr / 4];
             break;
         case 1: // halfword = 16 bits
             if(addr % 4 == 0) 
-                val = memory[addr / 4].substr(0, 16);
-            else {
-                int mod = addr % 4;
-                int offset = 16 - 8 * mod;
-
-                if(offset >= 0) 
-                    val = memory[floor(addr / 4)].substr(8 * mod, 16);
-                else {
-                    // TODO: try/catch
-                    val =  memory[floor(addr / 4)].substr(8 * mod, 8);
-                    val += memory[ceil(addr / 4)].substr(0, 8);
-                }
-            }
+                val = memory[addr / 4].substr(16, 16);
+            else 
+                val = memory[floor(addr / 4)].substr(0, 16);
             break;
         case 2: // byte = 8 bits
-            if(addr % 4 == 0) val = memory[addr / 4].substr(0, 8);
-            else { 
-                // TODO: try/catch
-                val = memory[floor(addr / 4)].substr(8 * (addr % 4), 8);
-            }
+            dec = addr / 4;
+            if(dec == 0) 
+                val = memory[floor(dec)].substr(24, 8);
+            else if(dec == .25) 
+                val = memory[floor(dec)].substr(16, 8);
+            else if(dec == .5)
+                val = memory[floor(dec)].substr(8,8);
+            else  
+                val = memory[floor(dec)].substr(0, 8);
             break;
         default:
             return 0;
@@ -217,6 +291,11 @@ string StateMachine::getMemSize(int addr, int type) {
     return val;
 }
 
+/**
+ * @function load instruction
+ * @desc pull from memory the instruction into register file
+ * @param opcode to determine if its a halfword, word, or byte
+ */
 void StateMachine::loadInstr(int op) {
     setAoe(1);
     iroeS2(1);
@@ -232,20 +311,90 @@ void StateMachine::loadInstr(int op) {
 
     // TODO: PUT IN C then update reg
     mdroeS2(1);
-    setS2OP(1);
+    setS2OP(0);
+    setAluOP(3);
+    CLoad(1);
+    printInfo();
+
+    setREGSelect(1);
+    updateReg(getREGSelect());
+    printInfo();
 }
 
+/**
+ * @function store instruction
+ * @desc based on type word,halfword, or byte
+ * @param op for determining size
+ */
+void StateMachine::storeInstr(int op) {
+    setAoe(1);
+    iroeS2(1);
+    setS2OP(3);
+    setAluOP(0);
+    marLoad(1);
+    printInfo();
+
+    setBoe(1);
+    setS2OP(0);
+    setAluOP(3);
+    mdrLoad(1);
+    printInfo();
+
+    setMemOP(op);
+    PCMARSelect(1);
+    memWrite(1);
+}
+
+/**
+ * @function memory
+ * @desc write to memory the data based on memop
+ * @param boolean to determine if you can write to memory
+ */
+void StateMachine::memWrite(bool write) {
+    if(write) {
+        data = bitset<32>(mdr).to_string();
+        cout << "\n\n" << data << endl;
+        switch(getMemOP()) {
+            // fix case num just testing!
+            case 0: memory[mar] = data;  break; // word = 32 bits
+            case 1: memory[mar] = data.substr(16, 16); break; // hw = 16 bits
+            case 2: memory[mar] = data.substr(24, 8); break; // 1 byte = 8bits
+            default: break;
+        }
+    }
+}
+
+/**
+ * @function mdroes2
+ * @desc put mdr on s2 bus
+ * @param boolean if s2 gets mdr
+ */
 void StateMachine::mdroeS2(bool val) {
     if(val) s2 = mdr;
 }
 
+/**
+ * @function load into mdr
+ * @desc puts the data into mdr
+ * @param boolean if mdr gets data bus
+ */
 void StateMachine::mdrLoad(bool val) {
-    if(val) mdr = stoi(data, nullptr, 2);
+    if(val) mdr = stol(data, nullptr, 2);
 }
+
+/**
+ * @function load into mar
+ * @desc puts the dest into mar
+ * @param boolean if mar gets dest bus
+ */
 void StateMachine::marLoad(bool val) {
     if(val) mar = dest;
 }
 
+/**
+ * @function load data into ir
+ * @desc gets all info such as imm func opcode and all import information
+ */
 void StateMachine::IRLoad() {
     setIR(data);
     setOP(getIR());
