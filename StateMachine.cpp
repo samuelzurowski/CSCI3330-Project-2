@@ -6,7 +6,7 @@
  */
 void StateMachine::start() {
     printInfo();
-    for(auto val: memory)
+    for(auto val: memory) // update this later on.
         checkInfo();
 }
 
@@ -19,23 +19,46 @@ void StateMachine::checkInfo() {
     printInfo();
     stateTwo();
     printInfo();
-
     switch(state.opCode) {
         case 0: checkRType();   break; // rTypes 
-        case 2: /* TODO: J   */ break;
-        case 4: /* TODO: BEQZ*/ break;
-        case 5: /* TODO: BNEZ*/ break;
-        case 8: /* TODO: ADDI*/ break;
-        case 13: /* TODO: ORI*/ break;
+        case 2: jump();         break; // J verify this
+        case 4: branchInstr(2); /* check NUM */ break; // BEQZ
+        case 5: branchInstr(2); break; // BNEZ
+        case 8:  iType(0);      break; // ADDI verify iType
+        case 13: iType(5);      break; // ORI
         case 32: loadInstr(2);  break; // LB
         case 33: loadInstr(1);  break; // LH
         case 35: loadInstr(0);  break; // LW
-        case 40: storeInstr(2); break; // SB
+        case 40: storeInstr(2); break; // SB verify these 3
         case 41: storeInstr(1); break; // SH
         case 43: storeInstr(0); break; // SW
         default: break;
     }
     printInfo();
+}
+/**
+ * @function Branch instruction state
+ * @desc branch instruction for the state machine
+ * @param op for alu
+ */
+
+// TODO: ZFlag?
+void StateMachine::branchInstr(int op) {
+    setAoe(1);
+    setS2OP(0);
+    setAluOP(op);
+}
+/**
+ * @function Jump to specific instruction
+ * @desc take the offset and update pc value.
+ */
+void StateMachine::jump() {
+    setPCoeS1(getPC());
+    iroeS2(1);
+    setS2OP(5); // verify this
+    setAluOP(0); // add s1 + s2
+    setPCLoad();
+
 }
 
 /**
@@ -51,6 +74,18 @@ void StateMachine::checkRType() {
         case 37: rType(5);  break; // OR
         default: exit(0);
     }
+}
+
+void StateMachine::iType(int op) {
+    setAoe(1);
+    iroeS2(1);
+    setS2OP(3);
+    setAluOP(op);
+    CLoad(1);
+    printInfo();
+
+    setREGSelect(1);
+    updateReg(getREGSelect());
 }
 
 /**
@@ -112,6 +147,7 @@ void StateMachine::rType(int aluCode) {
     setAluOP(aluCode);
     CLoad(1);
     printInfo();
+
     setREGSelect(0);
     updateReg(getREGSelect());
 }
@@ -149,13 +185,23 @@ void StateMachine::setAluOP(int op) {
 }
 
 /**
- * @function read from memory
+ * @function set Immediate
  * @desc makes the immediate signed by checking first bit
  * @param string to get immediate from
  */ 
 void StateMachine::setImm(string s){
     imm  = stol(s.substr(16, 16), nullptr, 2);
-    imm |= imm &  (1 << 15)  ? ( -(1<<16) ) : 0;
+    imm |= imm &  (1 << 15) ? (-(1<<16)) : 0;
+}
+
+/**
+ * @function set Offset
+ * @desc makes the offset signed by checking first bit
+ * @param string to get immediate from
+ */ 
+void StateMachine::setOffset(string s) {
+    offset = stol(s.substr(6, 26), nullptr, 2);
+    offset |= offset & (1 << 25) ? (-(1<<26)) : 0;
 }
 
 /**
@@ -224,6 +270,7 @@ void StateMachine::setS2OP(int op) {
     switch(op) {
         case 0: break;
         case 3: s2 = imm; break;
+        case 5: s2 = offset; break;
         case 6: s2 = 16; break;
         case 7: s2 = 4; break;
         default: exit(0);
@@ -281,7 +328,7 @@ string StateMachine::getMemSize(long addr, int type) {
             else if(dec == .25) 
                 val = memory[floor(dec)].substr(16, 8);
             else if(dec == .5)
-                val = memory[floor(dec)].substr(8,8);
+                val = memory[floor(dec)].substr(8, 8);
             else  
                 val = memory[floor(dec)].substr(0, 8);
             break;
@@ -309,7 +356,6 @@ void StateMachine::loadInstr(int op) {
     mdrLoad(1);
     printInfo();
 
-    // TODO: PUT IN C then update reg
     mdroeS2(1);
     setS2OP(0);
     setAluOP(3);

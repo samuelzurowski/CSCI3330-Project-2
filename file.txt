@@ -11,3 +11,5 @@ sw 0(r5), r12: 0xACAC0000
 end:lhi r8,#12000: 0x3C082EE0
 jal labela: 0x0FFFFFE0
 add r0, r1, r2 0x00220020
+
+JUST FOR REFERENCE NOT USED
