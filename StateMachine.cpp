@@ -47,6 +47,14 @@ void StateMachine::branchInstr(int op) {
     setAoe(1);
     setS2OP(0);
     setAluOP(op);
+
+    if((state.opCode == 4 && state.zFlag) || (state.opCode == 5 && !state.zFlag)) {
+        setPCoeS1(1);
+        iroeS2(1);
+        setS2OP(3);
+        setAluOP(0);
+        setPCLoad();
+    }
 }
 /**
  * @function Jump to specific instruction
@@ -182,6 +190,8 @@ void StateMachine::setAluOP(int op) {
         case 10: dest = s1 >> s2; break; // SRL
         default: exit(0);
     }
+    if(dest == 0) state.zFlag = 1;
+    else state.zFlag = 0;
 }
 
 /**
@@ -227,7 +237,7 @@ void StateMachine::printInfo() {
     
     cout << "Register Buffers: " << endl;
 
-    cout << "A: " << a;
+    cout << "A: "  << a;
     cout << " B: " << b;
     cout << " C: " << c << endl;
 
@@ -309,7 +319,7 @@ void StateMachine::readMemory(bool read, int op) {
  * @return the value pulled from memory
  */ 
 string StateMachine::getMemSize(long addr, int type) {
-    string val;
+    string val = "";
     double dec = 0;
     switch(type) {
         case 0: // word = 32 bits
