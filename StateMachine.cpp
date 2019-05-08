@@ -6,7 +6,7 @@
  */
 void StateMachine::start() {
     printInfo();
-    for(auto val: memory) // update this later on.
+    for(auto val : memory) // update this later on.
         checkInfo();
 }
 
@@ -17,6 +17,8 @@ void StateMachine::start() {
 void StateMachine::checkInfo() {
     stateOne();
     printInfo();
+    long stop = stol(state.ir, nullptr, 2);
+    if(stop == 0) return;
     stateTwo();
     printInfo();
     switch(state.opCode) {
