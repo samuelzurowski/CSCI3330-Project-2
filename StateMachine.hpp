@@ -71,7 +71,6 @@ class StateMachine {
         void setS1(long val) { s1 = val; }
         void setS2(long val) { s2 = val; }
 
-
         void incrementPC();
         int getPC() { return state.pc; }
         void setPCoeS1(int pc){ s1 = pc; } 
@@ -90,7 +89,6 @@ class StateMachine {
         void jump();
         void checkRType();
         void checkInfo();
-
 
         void marLoad(bool op);
         void mdrLoad(bool op);

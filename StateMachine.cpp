@@ -6,8 +6,7 @@
  */
 void StateMachine::start() {
     printInfo();
-    for(auto val : memory) // update this later on.
-        checkInfo();
+    for(;;) checkInfo();
 }
 
 /**
@@ -17,15 +16,17 @@ void StateMachine::start() {
 void StateMachine::checkInfo() {
     stateOne();
     printInfo();
+
     long stop = stol(state.ir, nullptr, 2);
-    if(stop == 0) return;
+    if(stop == 0) exit(0);
+
     stateTwo();
     printInfo();
     switch(state.opCode) {
-        case 0: checkRType();   break; // rTypes 
-        case 2: jump();         break; // J verify this
-        case 4: branchInstr(2); /* check NUM */ break; // BEQZ
-        case 5: branchInstr(2); break; // BNEZ
+        case 0:  checkRType();   break; // rTypes 
+        case 2:  jump();         break; // J verify this
+        case 4:  branchInstr(2); break; // BEQZ
+        case 5:  branchInstr(2); break; // BNEZ
         case 8:  iType(0);      break; // ADDI verify iType
         case 13: iType(5);      break; // ORI
         case 32: loadInstr(2);  break; // LB
@@ -38,13 +39,12 @@ void StateMachine::checkInfo() {
     }
     printInfo();
 }
+
 /**
  * @function Branch instruction state
  * @desc branch instruction for the state machine
  * @param op for alu
  */
-
-// TODO: ZFlag?
 void StateMachine::branchInstr(int op) {
     setAoe(1);
     setS2OP(0);
@@ -128,6 +128,7 @@ void StateMachine::incrementPC() {
     setAluOP(0);
     setPCLoad();
 }
+
 /**
  * @function set the a value onto the bus or not
  * @desc set the s1 bus to a's value
@@ -186,7 +187,7 @@ void StateMachine::setAluOP(int op) {
     switch(op) {
         case 0:  dest = s1 + s2;  break; // Add
         case 1:  dest = s1 - s2;  break; // Sub
-        case 3:  dest = s2; /* zflag */ break; // pass s2
+        case 3:  dest = s2;       break; // pass s2
         case 5:  dest = s1 | s2;  break; // OR
         case 8:  dest = s1 << s2; break; // SLL
         case 10: dest = s1 >> s2; break; // SRL
@@ -221,30 +222,32 @@ void StateMachine::setOffset(string s) {
  * @desc prints information such as registers, mar, etc
  */ 
 void StateMachine::printInfo() {
-    cout << "\nRegFile: " << endl;
+    ofstream ofs(fileOut, ios::out | ios::app);
+    ofs << "\nRegFile: " << endl;
     for(int i = 0; i < 32; i++) {
-        cout << "r" << i << ": " << regFile[i] << ' ';
+        ofs << "r" << i << ": " << regFile[i] << ' ';
     }
     //remove later on
-    cout << "\nMemory: " << endl;
+    ofs << "\nMemory: " << endl;
     for(int i = 0; i < memory.size(); i++)
-        cout << i << ' ' << memory[i] << '\n';
+        ofs << i << ' ' << memory[i] << '\n';
 
-    cout << "\nMemory Register:\nMDR: " << mdr << " MAR: " << mar << endl;
+    ofs << "\nMemory Register:\nMDR: " << mdr << " MAR: " << mar << endl;
 
-    cout << "Hardware Registers:\nIR: " << getIR() << " PC: " << getPC() << endl; 
+    ofs << "Hardware Registers:\nIR: " << getIR() << " PC: " << getPC() << endl; 
 
-    cout << "Data Bus:\nS1: " << s1 << " S2: " << s2 << " DEST: " << dest 
+    ofs << "Data Bus:\nS1: " << s1 << " S2: " << s2 << " DEST: " << dest 
          << " ADDR: " << addr << " DATA: " << data << endl;
     
-    cout << "Register Buffers: " << endl;
+    ofs << "Register Buffers: " << endl;
 
-    cout << "A: "  << a;
-    cout << " B: " << b;
-    cout << " C: " << c << endl;
+    ofs << "A: "  << a;
+    ofs << " B: " << b;
+    ofs << " C: " << c << endl;
 
-    cout << "Press [Enter] to continue...";
-    // getchar();
+    ofs << string(50, '-') << endl;
+
+    ofs.close();
 }
 
 /**
@@ -270,6 +273,9 @@ void StateMachine::loadMemory() {
         bitset<32> b(n);
         memory.push_back(b.to_string());
     } 
+    std::ofstream ofs;
+    ofs.open(fileOut, std::ofstream::out | std::ofstream::trunc);
+    ofs.close();
 }
 
 
@@ -411,7 +417,7 @@ void StateMachine::storeInstr(int op) {
 void StateMachine::memWrite(bool write) {
     if(write) {
         data = bitset<32>(mdr).to_string();
-        cout << "\n\n" << data << endl;
+        // cout << "\n\n" << data << endl;
         switch(getMemOP()) {
             // fix case num just testing!
             case 0: memory[mar] = data;  break; // word = 32 bits
