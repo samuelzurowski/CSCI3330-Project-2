@@ -50,7 +50,8 @@ void StateMachine::branchInstr(int op) {
     setS2OP(0);
     setAluOP(op);
 
-    if(state.zFlag == 1) {
+    if((state.zFlag == 1 && state.opCode == 4) || 
+       (state.zFlag == 0 && state.opCode == 5)) {
         setPCoeS1(getPC());
         iroeS2(1);
         setS2OP(3);
@@ -187,19 +188,15 @@ void StateMachine::setAluOP(int op) {
     switch(op) {
         case 0:  dest = s1 + s2;  break; // Add
         case 1:  dest = s1 - s2;  break; // Sub
-        case 2:  
-            dest = s1;      
-            if(s1 == 0) state.zFlag = 1;
-            else state.zFlag = 0; 
-            break;
+        case 2:  dest = s1;       break; // pass s1
         case 3:  dest = s2;       break; // pass s2
         case 5:  dest = s1 | s2;  break; // OR
         case 8:  dest = s1 << s2; break; // SLL
         case 10: dest = s1 >> s2; break; // SRL
         default: exit(0);
     }
-    // if(rs2 == 0) state.zFlag = 1;
-    // else state.zFlag = 0;
+    if(dest == 0) state.zFlag = 1;
+    else state.zFlag = 0;
 }
 
 /**
@@ -215,7 +212,7 @@ void StateMachine::setImm(string s){
 /**
  * @function set Offset
  * @desc makes the offset signed by checking first bit
- * @param string to get immediate from
+ * @param string to get offset from
  */ 
 void StateMachine::setOffset(string s) {
     offset = stol(s.substr(6, 26), nullptr, 2);
