@@ -27,7 +27,7 @@ void StateMachine::checkInfo() {
         case 2:  jump();         break; // J verify this
         case 4:  branchInstr(2); break; // BEQZ
         case 5:  branchInstr(2); break; // BNEZ
-        case 8:  iType(0);      break; // ADDI verify iType
+        case 8:  iType(0);      break; // ADDI
         case 13: iType(5);      break; // ORI
         case 32: loadInstr(2);  break; // LB
         case 33: loadInstr(1);  break; // LH
@@ -50,8 +50,8 @@ void StateMachine::branchInstr(int op) {
     setS2OP(0);
     setAluOP(op);
 
-    if((state.opCode == 4 && state.zFlag) || (state.opCode == 5 && !state.zFlag)) {
-        setPCoeS1(1);
+    if(state.zFlag == 1) {
+        setPCoeS1(getPC());
         iroeS2(1);
         setS2OP(3);
         setAluOP(0);
@@ -187,14 +187,19 @@ void StateMachine::setAluOP(int op) {
     switch(op) {
         case 0:  dest = s1 + s2;  break; // Add
         case 1:  dest = s1 - s2;  break; // Sub
+        case 2:  
+            dest = s1;      
+            if(s1 == 0) state.zFlag = 1;
+            else state.zFlag = 0; 
+            break;
         case 3:  dest = s2;       break; // pass s2
         case 5:  dest = s1 | s2;  break; // OR
         case 8:  dest = s1 << s2; break; // SLL
         case 10: dest = s1 >> s2; break; // SRL
         default: exit(0);
     }
-    if(dest == 0) state.zFlag = 1;
-    else state.zFlag = 0;
+    // if(rs2 == 0) state.zFlag = 1;
+    // else state.zFlag = 0;
 }
 
 /**
@@ -273,8 +278,8 @@ void StateMachine::loadMemory() {
         bitset<32> b(n);
         memory.push_back(b.to_string());
     } 
-    std::ofstream ofs;
-    ofs.open(fileOut, std::ofstream::out | std::ofstream::trunc);
+    ofstream ofs;
+    ofs.open(fileOut, ofstream::out | ofstream::trunc);
     ofs.close();
 }
 
