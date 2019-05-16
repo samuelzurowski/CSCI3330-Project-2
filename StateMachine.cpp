@@ -280,7 +280,6 @@ void StateMachine::loadMemory() {
     ofs.close();
 }
 
-
 /**
  * @function set the s2 op
  * @desc put information on the s2 bus
@@ -403,7 +402,7 @@ void StateMachine::storeInstr(int op) {
     setBoe(1);
     setS2OP(0);
     setAluOP(3);
-    mdrLoad(1);
+    mdrLoad(1); 
     printInfo();
 
     setMemOP(op);
@@ -445,6 +444,7 @@ void StateMachine::mdroeS2(bool val) {
  * @param boolean if mdr gets data bus
  */
 void StateMachine::mdrLoad(bool val) {
+    // martinez here
     if(val) mdr = stol(data, nullptr, 2);
 }
 
